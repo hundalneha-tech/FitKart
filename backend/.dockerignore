@@ -1,0 +1,70 @@
+# .dockerignore - Files to exclude from Docker builds
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Node modules (installed fresh in container)
+node_modules
+npm-debug.log
+npm-error.log
+yarn-error.log
+
+# Build outputs
+dist
+build
+.tsbuildinfo
+
+# Testing
+coverage
+.coverage
+jest-coverage
+test
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+.env
+
+# Environment specific
+.env.local
+.env.*.local
+.env.test
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Misc
+.editorconfig
+.prettierrc
+.eslintrc*
+tsconfig.json
+jest.config.ts
+
+# Database
+*.sql
+migrations/
+seeders/
+
+# Temporary
+tmp/
+temp/
+*.tmp

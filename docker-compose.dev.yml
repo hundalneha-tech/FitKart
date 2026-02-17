@@ -1,0 +1,82 @@
+version: '3.8'
+
+# Development-specific overrides
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: postgres_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      DATABASE_PASSWORD: postgres_dev_password
+      JWT_SECRET: dev_secret_key_12345
+      ENABLE_PROFILING: "true"
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node debugger
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - /app/dist
+    command: npm run dev
+    stdin_open: true
+    tty: true
+
+  # ============================================
+  # Development Tools
+  # ============================================
+  
+  # pgAdmin - PostgreSQL Admin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fitkart-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fitkart.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - fitkart-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  # Redis Commander - Redis Admin
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: fitkart-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - fitkart-network
+
+volumes:
+  pgadmin_data:
+
+networks:
+  fitkart-network:
+    driver: bridge

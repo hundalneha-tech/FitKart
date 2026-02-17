@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#028090">
+    <title>FitKart - Steps to Rewards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Loading screen styles */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #028090 0%, #00A896 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        #loading-screen.hidden {
+            display: none;
+        }
+        
+        .loading-logo {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            margin-bottom: 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #028090;
+            --primary-dark: #015f6b;
+            --secondary: #00A896;
+            --accent: #f5576c;
+            --purple: #667eea;
+            --yellow: #fdcb6e;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-gray: #666666;
+            --text-light: #999999;
+            --border: #e0e0e0;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.16);
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #028090 0%, #00A896 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        #root {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        .phone-container {
+            width: 100%;
+            height: 100%;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phone-container::before {
+            display: none;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-light);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease-out forwards;
+        }
+
+        .scale-in {
+            animation: scaleIn 0.4s ease-out forwards;
+        }
+
+        /* Splash Screen */
+        .splash-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #028090 0%, #00A896 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .splash-logo {
+            width: 140px;
+            height: 140px;
+            background: white;
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 70px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: pulse 2s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        .splash-text {
+            color: white;
+            font-size: 42px;
+            font-weight: 800;
+            margin-top: 30px;
+            letter-spacing: -1px;
+            z-index: 1;
+        }
+
+        .splash-tagline {
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            font-weight: 300;
+            margin-top: 10px;
+            z-index: 1;
+        }
+
+        /* Onboarding */
+        .onboarding-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            overflow: hidden;
+        }
+
+        .onboarding-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .onboarding-image {
+            width: 240px;
+            height: 240px;
+            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .onboarding-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .onboarding-content p {
+            font-size: 16px;
+            color: var(--text-gray);
+            line-height: 1.6;
+            max-width: 320px;
+        }
+
+        .onboarding-dots {
+            display: flex;
+            gap: 10px;
+            margin: 40px 0;
+        }
+
+        .onboarding-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .onboarding-dot.active {
+            background: var(--primary);
+            width: 32px;
+            border-radius: 5px;
+        }
+
+        .onboarding-actions {
+            padding: 20px 30px 30px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 16px rgba(2, 128, 144, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(2, 128, 144, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(2, 128, 144, 0.05);
+        }
+
+        /* Main App Layout */
+        .app-header {
+            background: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .app-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: var(--bg-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: var(--border);
+            transform: scale(1.05);
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+
+        .app-content::-webkit-scrollbar {
+            width: 0;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            height: 80px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 8px 20px;
+            border-radius: 0 0 28px 28px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-light);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.2);
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .big-stat {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1;
+            margin: 12px 0;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 6px;
+            transition: width 1s ease-out;
+            box-shadow: 0 0 12px rgba(255,255,255,0.5);
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 24px 0 16px;
+        }
+
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .section-link {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .section-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Quick Stats Grid */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .quick-stat {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .quick-stat-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .quick-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .quick-stat-label {
+            font-size: 13px;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-4px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            position: relative;
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.95);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .product-info {
+            padding: 12px;
+        }
+
+        .product-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-top: 8px;
+        }
+
+        .add-to-cart-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .add-to-cart-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--accent);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        /* Reward Point Card */
+        .reward-card {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            padding: 28px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .reward-label {
+            font-size: 15px;
+            opacity: 0.95;
+            margin-bottom: 8px;
+        }
+
+        .reward-points {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 8px;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .reward-value {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        /* Achievement Grid */
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .achievement-item {
+            background: white;
+            padding: 16px 12px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .achievement-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .achievement-item.locked {
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+        }
+
+        .achievement-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .achievement-item.locked .achievement-icon {
+            opacity: 0.3;
+        }
+
+        .achievement-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .achievement-item.locked .achievement-name {
+            color: var(--text-light);
+        }
+
+        /* Settings List */
+        .settings-list {
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item:hover {
+            background: var(--bg-light);
+        }
+
+        .settings-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .settings-arrow {
+            color: var(--text-light);
+            font-size: 20px;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 32px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 700;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+
+        .profile-stat-item {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Modal Overlay & Content */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 90%;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--bg-light);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-light);
+            border: none;
+            font-size: 24px;
+            color: var(--text-gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Outfit', sans-serif;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Store-specific styles */
+        .store-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .store-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .store-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .category-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .category-chips::-webkit-scrollbar {
+            height: 0;
+        }
+
+        .category-chip {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .category-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .category-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-bar {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 45px 14px 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--text-gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .phone-container {
+                border-radius: 0;
+            }
+            
+            .screen {
+                border-radius: 0;
+            }
+        }
+
+        /* Desktop View - Show as phone mockup */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+            #root {
+                max-width: 420px;
+                max-height: 900px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                border-radius: 40px;
+            }
+
+            .phone-container {
+                border-radius: 40px;
+                padding: 20px 16px;
+            }
+
+            .phone-container::before {
+                content: '';
+                display: block;
+                position: absolute;
+                top: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 80px;
+                height: 6px;
+                background: #333;
+                border-radius: 3px;
+                z-index: 1000;
+            }
+
+            .screen {
+                border-radius: 28px;
+            }
+
+            .bottom-nav {
+                border-radius: 0 0 28px 28px;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 24px;
+        }
+
+        /* Auth Screen Styles */
+        .auth-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #028090 0%, #00A896 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 20px;
+            overflow-y: auto;
+        }
+
+        .auth-logo {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .auth-title {
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .auth-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 280px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 4px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .auth-tab.active {
+            background: white;
+            color: var(--primary);
+        }
+
+        .auth-form {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(2, 128, 144, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(2, 128, 144, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .google-btn {
+            width: 100%;
+            background: white;
+            color: #333;
+            padding: 12px 20px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .google-btn:hover {
+            border-color: var(--primary);
+            background: rgba(2, 128, 144, 0.05);
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .success-message {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #060;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-logo">🏃</div>
+        <div class="loading-text">FitKart</div>
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function FitKartApp() {
+            const [currentScreen, setCurrentScreen] = useState('splash');
+            const [activeTab, setActiveTab] = useState('home');
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [appData, setAppData] = useState({
+                user: {
+                    name: 'Rajesh Kumar',
+                    email: 'rajesh.kumar@email.com',
+                    avatar: 'RK'
+                },
+                todayStats: {
+                    steps: 0,
+                    coins: 0,
+                    distance: 0
+                }
+            });
+
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    const hasAccount = localStorage.getItem('fitkart_user_logged_in');
+                    if (hasAccount === 'true') {
+                        setIsAuthenticated(true);
+                        setCurrentScreen('app');
+                    } else {
+                        setCurrentScreen('auth');
+                    }
+                }, 2500);
+                return () => clearTimeout(timer);
+            }, []);
+
+            const handleLogin = (userData) => {
+                setIsAuthenticated(true);
+                localStorage.setItem('fitkart_user_logged_in', 'true');
+                setCurrentScreen('app');
+            };
+
+            const handleLogout = () => {
+                setIsAuthenticated(false);
+                localStorage.setItem('fitkart_user_logged_in', 'false');
+                setCurrentScreen('auth');
+            };
+
+            const renderScreen = () => {
+                switch (currentScreen) {
+                    case 'splash':
+                        return <SplashScreen />;
+                    case 'auth':
+                        return <AuthScreen onLogin={handleLogin} />;
+                    case 'app':
+                        return <MainApp activeTab={activeTab} setActiveTab={setActiveTab} appData={appData} onLogout={handleLogout} />;
+                    default:
+                        return <SplashScreen />;
+                }
+            };
+
+            return (
+                <div className="phone-container">
+                    <div className="screen">
+                        {renderScreen()}
+                    </div>
+                </div>
+            );
+        }
+
+        function SplashScreen() {
+            return (
+                <div className="splash-screen">
+                    <div className="splash-logo scale-in">🏃</div>
+                    <div className="splash-text fade-in">FitKart</div>
+                    <div className="splash-tagline fade-in">Steps to Rewards</div>
+                </div>
+            );
+        }
+
+        function AuthScreen({ onLogin }) {
+            const [activeTab, setActiveTab] = useState('login');
+            const [formData, setFormData] = useState({ 
+                fullName: '', 
+                email: '', 
+                password: '', 
+                confirmPassword: '',
+                countryCode: '+1',
+                phoneNumber: '',
+                agreeTerms: false
+            });
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const countryCodes = [
+                { code: '+1', country: 'US/CA', flag: '🇺🇸' },
+                { code: '+44', country: 'UK', flag: '🇬🇧' },
+                { code: '+91', country: 'IN', flag: '🇮🇳' },
+                { code: '+86', country: 'CN', flag: '🇨🇳' },
+                { code: '+81', country: 'JP', flag: '🇯🇵' },
+                { code: '+49', country: 'DE', flag: '🇩🇪' },
+                { code: '+33', country: 'FR', flag: '🇫🇷' },
+                { code: '+61', country: 'AU', flag: '🇦🇺' },
+                { code: '+55', country: 'BR', flag: '🇧🇷' },
+                { code: '+52', country: 'MX', flag: '🇲🇽' },
+                { code: '+82', country: 'KR', flag: '🇰🇷' },
+                { code: '+34', country: 'ES', flag: '🇪🇸' },
+                { code: '+39', country: 'IT', flag: '🇮🇹' },
+                { code: '+7', country: 'RU', flag: '🇷🇺' },
+                { code: '+27', country: 'ZA', flag: '🇿🇦' }
+            ];
+
+            const handleInputChange = (e) => {
+                const { name, value, type, checked } = e.target;
+                setFormData(prev => ({ 
+                    ...prev, 
+                    [name]: type === 'checkbox' ? checked : value 
+                }));
+                setError('');
+            };
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setError('');
+                if (!formData.email || !formData.password) {
+                    setError('Please fill all fields');
+                    return;
+                }
+                setLoading(true);
+                setTimeout(() => {
+                    onLogin();
+                    setLoading(false);
+                }, 1000);
+            };
+
+            const handleSignup = async (e) => {
+                e.preventDefault();
+                setError('');
+                if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword || !formData.phoneNumber) {
+                    setError('Please fill all fields');
+                    return;
+                }
+                if (formData.password !== formData.confirmPassword) {
+                    setError('Passwords do not match');
+                    return;
+                }
+                if (!formData.agreeTerms) {
+                    setError('Please agree to Terms and Privacy Policy');
+                    return;
+                }
+                setLoading(true);
+                setTimeout(() => {
+                    onLogin();
+                    setLoading(false);
+                }, 1000);
+            };
+
+            return (
+                <div className="auth-screen">
+                    <div className="auth-logo scale-in">🏃</div>
+                    <h1 className="auth-title fade-in">FitKart</h1>
+                    <p className="auth-subtitle fade-in">Track steps, earn coins, redeem rewards!</p>
+                    <div className="auth-container">
+                        <div className="auth-tabs">
+                            <button className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`} onClick={() => setActiveTab('login')}>
+                                Login
+                            </button>
+                            <button className={`auth-tab ${activeTab === 'signup' ? 'active' : ''}`} onClick={() => setActiveTab('signup')}>
+                                Sign Up
+                            </button>
+                        </div>
+                        <div className="auth-form slide-up">
+                            {error && <div className="error-message">⚠️ {error}</div>}
+                            
+                            {activeTab === 'signup' ? (
+                                <form onSubmit={handleSignup}>
+                                    <div className="form-group">
+                                        <label className="form-label">Full Name *</label>
+                                        <input type="text" name="fullName" className="form-input" placeholder="John Doe" value={formData.fullName} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Email Address *</label>
+                                        <input type="email" name="email" className="form-input" placeholder="your@email.com" value={formData.email} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Password *</label>
+                                        <input type="password" name="password" className="form-input" placeholder="Minimum 6 characters" value={formData.password} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Confirm Password *</label>
+                                        <input type="password" name="confirmPassword" className="form-input" placeholder="Re-enter password" value={formData.confirmPassword} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Phone Number *</label>
+                                        <div style={{display: 'flex', gap: '8px'}}>
+                                            <select 
+                                                name="countryCode"
+                                                className="form-select" 
+                                                value={formData.countryCode}
+                                                onChange={handleInputChange}
+                                                style={{width: '100px', flex: 'none'}}
+                                                required
+                                            >
+                                                {countryCodes.map(({ code, flag }) => (
+                                                    <option key={code} value={code}>
+                                                        {flag} {code}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input type="tel" name="phoneNumber" className="form-input" placeholder="10-digit phone number" value={formData.phoneNumber} onChange={handleInputChange} required />
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px'}}>
+                                        <input 
+                                            type="checkbox" 
+                                            name="agreeTerms" 
+                                            checked={formData.agreeTerms} 
+                                            onChange={handleInputChange}
+                                            style={{marginTop: '4px', width: '18px', height: '18px', cursor: 'pointer'}}
+                                        />
+                                        <label style={{fontSize: '12px', color: 'var(--text-gray)', lineHeight: '1.4', cursor: 'pointer'}}>
+                                            I agree to the <a href="#" onClick={(e) => e.preventDefault()} style={{color: 'var(--primary)', textDecoration: 'none'}}>Terms</a> and <a href="#" onClick={(e) => e.preventDefault()} style={{color: 'var(--primary)', textDecoration: 'none'}}>Privacy Policy</a>
+                                        </label>
+                                    </div>
+                                    <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>
+                                        {loading ? 'Creating Account...' : '✨ Create Account'}
+                                    </button>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleLogin}>
+                                    <div className="form-group">
+                                        <label className="form-label">Email</label>
+                                        <input type="email" name="email" className="form-input" placeholder="your@email.com" value={formData.email} onChange={handleInputChange} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Password</label>
+                                        <input type="password" name="password" className="form-input" placeholder="Enter password" value={formData.password} onChange={handleInputChange} />
+                                    </div>
+                                    <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>
+                                        {loading ? 'Logging in...' : '🚀 Login to FitKart'}
+                                    </button>
+                                </form>
+                            )}
+
+                            <div style={{display: 'flex', alignItems: 'center', margin: '16px 0', gap: '8px'}}>
+                                <div style={{flex: 1, height: '1px', background: 'var(--border)'}}></div>
+                                <span style={{fontSize: '12px', color: 'var(--text-gray)', fontWeight: '600'}}>OR CONTINUE WITH</span>
+                                <div style={{flex: 1, height: '1px', background: 'var(--border)'}}></div>
+                            </div>
+
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px'}}>
+                                <button type="button" className="google-btn" style={{padding: '12px', fontSize: '13px'}} onClick={() => alert('🔐 Google Sign-In\n\nRedirecting to Google OAuth...')}>
+                                    <svg width="16" height="16" viewBox="0 0 20 20">
+                                        <path fill="#4285F4" d="M19.6 10.2c0-.7-.1-1.4-.2-2H10v3.8h5.4c-.2 1.2-1 2.2-2.1 2.9v2.5h3.4c2-1.8 3.1-4.5 3.1-7.2z"/>
+                                        <path fill="#34A853" d="M10 20c2.8 0 5.2-.9 6.9-2.5l-3.4-2.6c-.9.6-2.1 1-3.5 1-2.7 0-5-1.8-5.8-4.3H.8v2.7C2.5 17.8 6 20 10 20z"/>
+                                        <path fill="#FBBC05" d="M4.2 11.6c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V4.9H.8C.3 6 0 7.5 0 10s.3 4 .8 5.1l3.4-2.7z"/>
+                                        <path fill="#EA4335" d="M10 3.9c1.5 0 2.9.5 4 1.5l3-3C15.2.7 12.8 0 10 0 6 0 2.5 2.2.8 5.5l3.4 2.7C5 5.7 7.3 3.9 10 3.9z"/>
+                                    </svg>
+                                    <span style={{display: 'block', marginTop: '4px'}}>Google</span>
+                                </button>
+
+                                <button type="button" className="google-btn" style={{padding: '12px', fontSize: '13px'}} onClick={() => alert('🍎 Apple Sign-In\n\nRedirecting to Apple OAuth...')}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19.5 0H4.5C2.01 0 0 2.01 0 4.5v15C0 21.99 2.01 24 4.5 24h15c2.49 0 4.5-2.01 4.5-4.5v-15C24 2.01 21.99 0 19.5 0zm-4.99 16.13c-.9 1.32-2.35 1.95-4.08 1.95-1.79 0-3.37-1.09-4.03-2.78-.38-1.01-.38-2.07 0-3.08.66-1.69 2.24-2.78 4.03-2.78 1.73 0 3.18.63 4.08 1.95h2.97c-.88-2.97-3.77-5.1-7.05-5.1-4.18 0-7.5 3.32-7.5 7.5 0 4.18 3.32 7.5 7.5 7.5 3.28 0 6.17-2.13 7.05-5.1h-2.97z"/>
+                                    </svg>
+                                    <span style={{display: 'block', marginTop: '4px'}}>Apple</span>
+                                </button>
+
+                                <button type="button" className="google-btn" style={{padding: '12px', fontSize: '13px'}} onClick={() => alert('📧 Email/OTP Sign-In\n\nEnter your email to receive OTP...')}>
+                                    <span style={{fontSize: '16px', marginBottom: '4px', display: 'block'}}>📧</span>
+                                    <span style={{display: 'block', marginTop: '4px'}}>Email</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function MainApp({ activeTab, setActiveTab, appData, onLogout }) {
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'home':
+                        return <HomeScreen appData={appData} />;
+                    case 'activity':
+                        return <ActivityScreen appData={appData} />;
+                    case 'rewards':
+                        return <RewardsScreen appData={appData} />;
+                    case 'store':
+                        return <StoreScreen appData={appData} />;
+                    case 'profile':
+                        return <ProfileScreen appData={appData} onLogout={onLogout} />;
+                    default:
+                        return <HomeScreen appData={appData} />;
+                }
+            };
+
+            return (
+                <>
+                    {renderContent()}
+                    <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+                </>
+            );
+        }
+
+        function HomeScreen({ appData }) {
+            const [todaySteps, setTodaySteps] = useState(0);
+            const goalSteps = 10000;
+            const coinsEarned = Math.floor(todaySteps / 100);
+            const progress = Math.min((todaySteps / goalSteps) * 100, 100);
+
+            return (
+                <>
+                    <div className="app-header">
+                        <div>
+                            <h1>Welcome back! 👋</h1>
+                            <p style={{ fontSize: '14px', color: 'var(--text-gray)', marginTop: '4px' }}>
+                                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                            </p>
+                        </div>
+                        <div className="header-icons">
+                            <button className="icon-btn">🔔</button>
+                        </div>
+                    </div>
+                    <div className="app-content">
+                        <div className="stats-card fade-in">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div className="stat-label">Today's Steps</div>
+                                    <div className="big-stat">{todaySteps.toLocaleString()}</div>
+                                    <div className="stat-label">Goal: {goalSteps.toLocaleString()}</div>
+                                </div>
+                                <div style={{ fontSize: '64px' }}>👟</div>
+                            </div>
+                            <div className="progress-bar">
+                                <div className="progress-fill" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+                            </div>
+                        </div>
+
+                        <div className="quick-stats fade-in">
+                            <div className="quick-stat">
+                                <div className="quick-stat-icon">💰</div>
+                                <div className="quick-stat-value">{coinsEarned}</div>
+                                <div className="quick-stat-label">Coins Earned</div>
+                            </div>
+                            <div className="quick-stat">
+                                <div className="quick-stat-icon">📏</div>
+                                <div className="quick-stat-value">{(todaySteps * 0.000762).toFixed(1)}</div>
+                                <div className="quick-stat-label">Miles</div>
+                            </div>
+                        </div>
+
+                        <div className="section-header">
+                            <h3>Coins Balance</h3>
+                        </div>
+
+                        <div className="reward-card fade-in">
+                            <div className="reward-label">Your Reward Coins</div>
+                            <div className="reward-points">2,450</div>
+                            <div className="reward-value">Redeem in store for products</div>
+                            <button className="btn" style={{ background: 'white', color: '#f5576c', fontWeight: '700' }}>
+                                Redeem Now
+                            </button>
+                        </div>
+
+                        <div className="section-header">
+                            <h3>Featured Rewards</h3>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }} className="fade-in">
+                            {[
+                                { name: 'Nike Shoes', coins: '500', icon: '👟', color: 'linear-gradient(135deg, #667eea, #764ba2)' },
+                                { name: 'Fitbit Watch', coins: '1200', icon: '⌚', color: 'linear-gradient(135deg, #f093fb, #f5576c)' }
+                            ].map((item, idx) => (
+                                <div key={idx} className="product-card">
+                                    <div className="product-image" style={{ background: item.color }}>
+                                        <div style={{ fontSize: '60px' }}>{item.icon}</div>
+                                    </div>
+                                    <div className="product-info">
+                                        <div className="product-name">{item.name}</div>
+                                        <div className="product-price">{item.coins} coins</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <button className="btn btn-primary" style={{ marginTop: '20px' }}>
+                            Browse All Rewards
+                        </button>
+                    </div>
+                </>
+            );
+        }
+
+        function ActivityScreen({ appData }) {
+            return (
+                <>
+                    <div className="app-header">
+                        <h1>Activity 📊</h1>
+                    </div>
+                    <div className="app-content">
+                        <div className="card fade-in">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                <div>
+                                    <div style={{ fontSize: '14px', color: 'var(--text-gray)', marginBottom: '4px' }}>Total Steps (This Week)</div>
+                                    <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-dark)' }}>67,234</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: '14px', color: 'var(--text-gray)', marginBottom: '4px' }}>Distance</div>
+                                    <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--primary)' }}>51.2 km</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="section-header">
+                            <h3>Weekly Activity</h3>
+                        </div>
+
+                        <div className="card fade-in">
+                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
+                                const steps = Math.floor(Math.random() * 15000) + 5000;
+                                const percent = (steps / 15000) * 100;
+                                return (
+                                    <div key={idx} style={{ marginBottom: '12px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                            <span style={{ fontSize: '13px', fontWeight: '600' }}>{day}</span>
+                                            <span style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '700' }}>{steps.toLocaleString()}</span>
+                                        </div>
+                                        <div className="progress-bar" style={{ height: '6px' }}>
+                                            <div className="progress-fill" style={{ width: `${percent}%` }}></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <button className="btn btn-primary" style={{ marginTop: '20px' }}>
+                            Log Manual Activity
+                        </button>
+                    </div>
+                </>
+            );
+        }
+
+        function RewardsScreen({ appData }) {
+            const achievements = [
+                { icon: '🥇', name: '1K Steps', unlocked: true },
+                { icon: '🥈', name: '10K Steps', unlocked: true },
+                { icon: '🥉', name: '50K Steps', unlocked: false },
+                { icon: '🏆', name: '100K Steps', unlocked: false },
+                { icon: '🎯', name: 'Weekly Goal', unlocked: true },
+                { icon: '🔥', name: 'Streak Master', unlocked: false }
+            ];
+
+            return (
+                <>
+                    <div className="app-header">
+                        <h1>Rewards 🎁</h1>
+                    </div>
+                    <div className="app-content">
+                        <div className="reward-card fade-in">
+                            <div className="reward-label">Your Coins</div>
+                            <div className="reward-points">2,450</div>
+                            <div className="reward-value">Ready to redeem</div>
+                        </div>
+
+                        <div className="section-header">
+                            <h3>Achievements</h3>
+                        </div>
+
+                        <div className="achievement-grid">
+                            {achievements.map((badge, idx) => (
+                                <div key={idx} className={`achievement-item ${!badge.unlocked ? 'locked' : ''}`}>
+                                    <div className="achievement-icon">{badge.icon}</div>
+                                    <div className="achievement-name">{badge.name}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <button className="btn btn-primary">
+                            View All Rewards
+                        </button>
+                    </div>
+                </>
+            );
+        }
+
+        function StoreScreen({ appData }) {
+            const [selectedCategory, setSelectedCategory] = useState('all');
+            const [cart, setCart] = useState([]);
+            const [showCart, setShowCart] = useState(false);
+
+            const products = [
+                { id: 1, name: 'Nike Shoes', coins: 500, icon: '👟', color: 'linear-gradient(135deg, #667eea, #764ba2)' },
+                { id: 2, name: 'Fitbit Watch', coins: 1200, icon: '⌚', color: 'linear-gradient(135deg, #f093fb, #f5576c)' },
+                { id: 3, name: 'Sports Tee', coins: 200, icon: '👕', color: 'linear-gradient(135deg, #ffeaa7, #fdcb6e)' },
+                { id: 4, name: 'Water Bottle', coins: 150, icon: '💧', color: 'linear-gradient(135deg, #74b9ff, #0984e3)' }
+            ];
+
+            const addToCart = (product) => {
+                setCart([...cart, product]);
+                alert(`✅ ${product.name} added to cart!`);
+            };
+
+            const cartTotal = cart.reduce((sum, item) => sum + item.coins, 0);
+
+            return (
+                <>
+                    <div className="app-header">
+                        <h1>Store 🛍️</h1>
+                        <div className="header-icons">
+                            <button className="icon-btn" style={{ position: 'relative' }} onClick={() => setShowCart(true)}>
+                                🛒
+                                {cart.length > 0 && <div className="cart-badge">{cart.length}</div>}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="app-content">
+                        <div className="store-header fade-in">
+                            <h2>Reward Store</h2>
+                            <p>Redeem your coins for amazing products</p>
+                        </div>
+
+                        <div className="section-header">
+                            <h3>Products</h3>
+                        </div>
+
+                        <div className="product-grid">
+                            {products.map((product, idx) => (
+                                <div key={product.id} className="product-card slide-up">
+                                    <div className="product-image" style={{ background: product.color }}>
+                                        <div style={{ fontSize: '60px' }}>{product.icon}</div>
+                                    </div>
+                                    <div className="product-info">
+                                        <div className="product-name">{product.name}</div>
+                                        <div className="product-price">{product.coins}</div>
+                                        <button className="add-to-cart-btn" onClick={() => addToCart(product)}>+</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {showCart && (
+                            <div className="modal-overlay" onClick={() => setShowCart(false)}>
+                                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                    <div className="modal-header">
+                                        <div className="modal-title">🛒 Cart ({cart.length})</div>
+                                        <button className="modal-close" onClick={() => setShowCart(false)}>×</button>
+                                    </div>
+                                    <div style={{ padding: '20px', maxHeight: '400px', overflowY: 'auto' }}>
+                                        {cart.length === 0 ? (
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ fontSize: '48px', marginBottom: '12px' }}>🛒</div>
+                                                <p>Your cart is empty</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {cart.map((item, idx) => (
+                                                    <div key={idx} style={{ padding: '12px', background: 'var(--bg-light)', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span>{item.name}</span>
+                                                        <span style={{ fontWeight: '700', color: 'var(--primary)' }}>{item.coins}</span>
+                                                    </div>
+                                                ))}
+                                                <div style={{ marginTop: '16px', padding: '12px', background: 'var(--bg-light)', borderRadius: '8px', textAlign: 'right' }}>
+                                                    <div style={{ fontSize: '14px', color: 'var(--text-gray)' }}>Total:</div>
+                                                    <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--primary)' }}>{cartTotal} coins</div>
+                                                </div>
+                                                <button className="btn btn-primary" style={{ marginTop: '16px' }}>
+                                                    Checkout
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
+            );
+        }
+
+        function ProfileScreen({ appData, onLogout }) {
+            const user = appData?.user || {};
+
+            return (
+                <>
+                    <div className="profile-header">
+                        <div className="profile-avatar">{user.avatar || 'RK'}</div>
+                        <div className="profile-name">{user.name || 'Rajesh Kumar'}</div>
+                        <div className="profile-email">{user.email || 'rajesh@email.com'}</div>
+                        <div className="profile-stats">
+                            <div className="profile-stat-item">
+                                <div className="profile-stat-value">25</div>
+                                <div className="profile-stat-label">Days Active</div>
+                            </div>
+                            <div className="profile-stat-item">
+                                <div className="profile-stat-value">2.4K</div>
+                                <div className="profile-stat-label">Total Coins</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="app-content">
+                        <div className="section-header">
+                            <h3>Settings</h3>
+                        </div>
+
+                        <div className="settings-list fade-in">
+                            <div className="settings-item">
+                                <div className="settings-label">
+                                    <span>⚙️</span>
+                                    <span>Account Settings</span>
+                                </div>
+                                <div className="settings-arrow">›</div>
+                            </div>
+                            <div className="settings-item">
+                                <div className="settings-label">
+                                    <span>🔔</span>
+                                    <span>Notifications</span>
+                                </div>
+                                <div className="settings-arrow">›</div>
+                            </div>
+                            <div className="settings-item">
+                                <div className="settings-label">
+                                    <span>❓</span>
+                                    <span>Help & Support</span>
+                                </div>
+                                <div className="settings-arrow">›</div>
+                            </div>
+                            <div className="settings-item" onClick={onLogout} style={{ borderTop: '2px solid var(--bg-light)', marginTop: '16px', paddingTop: '16px' }}>
+                                <div className="settings-label">
+                                    <span>🚪</span>
+                                    <span style={{ color: 'var(--accent)' }}>Logout</span>
+                                </div>
+                                <div className="settings-arrow">›</div>
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-light)', borderRadius: '12px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Member since Feb 2026</div>
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
+        function BottomNav({ activeTab, setActiveTab }) {
+            const navItems = [
+                { id: 'home', icon: '🏠', label: 'Home' },
+                { id: 'activity', icon: '📊', label: 'Activity' },
+                { id: 'rewards', icon: '🎁', label: 'Rewards' },
+                { id: 'store', icon: '🛍️', label: 'Store' },
+                { id: 'profile', icon: '👤', label: 'Profile' }
+            ];
+
+            return (
+                <div className="bottom-nav">
+                    {navItems.map(item => (
+                        <div key={item.id} className={`nav-item ${activeTab === item.id ? 'active' : ''}`} onClick={() => setActiveTab(item.id)}>
+                            <div className="nav-icon">{item.icon}</div>
+                            <div className="nav-label">{item.label}</div>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        const root = document.getElementById('root');
+        ReactDOM.render(<FitKartApp />, root);
+        
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+            }
+        }, 100);
+    </script>
+</body>
+</html>
